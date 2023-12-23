@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-@bz(ibr2hc3b^vozm23v^cj4r&sr8e4$ps_a-sc2ea#zk2xf_8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['10.0.2.2', 'localhost']
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'usersAPI',
     'parking_lot',
     'reservations',
+    'background_task',
 ]
 
 MIDDLEWARE = [

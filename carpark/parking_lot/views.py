@@ -1,7 +1,5 @@
 from django.http import JsonResponse, HttpResponse
-from .utils.rand_free_or_taken import rand_free_or_taken
 import random
-from django.conf.global_settings import SECRET_KEY
 from .models import Spot, Zone, Level, Parking, Shops
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework_simplejwt.tokens import AccessToken
@@ -9,9 +7,6 @@ import json
 import re
 import networkx as nx
 import math
-# import matplotlib.pyplot as plt
-import jwt
-import base64
 # Create your views here.
 
 @csrf_exempt
@@ -53,7 +48,7 @@ def get_names(request):
     querry = Parking.objects.values_list('name')
     names = {'names': [name[0] for name in querry]}
 
-    print(names)
+    # print(names)
 
     return JsonResponse(names)
 

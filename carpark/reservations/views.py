@@ -1,11 +1,11 @@
-from django.shortcuts import render
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime, timedelta
 from .models import Reservations
 from usersAPI.models import User
 from parking_lot.models import Parking
 import json
+
 # Create your views here.
 
 @csrf_exempt
