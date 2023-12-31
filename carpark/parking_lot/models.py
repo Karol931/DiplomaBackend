@@ -1,9 +1,5 @@
 from django.db import models
 
-class Shops(models.Model):
-    name = models.CharField(max_length=255)
-    zone = models.CharField(max_length=1)
-
 class Parking(models.Model):
     name = models.CharField(max_length=255, unique=True)
     is_paid = models.BooleanField()

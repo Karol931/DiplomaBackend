@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'usersAPI',
     'parking_lot',
     'reservations',
+    'shops',
     'background_task',
 ]
 

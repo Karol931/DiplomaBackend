@@ -1,8 +1,8 @@
 from django.http import JsonResponse, HttpResponse
 import random
-from .models import Spot, Zone, Level, Parking, Shops
+from .models import Spot, Zone, Level, Parking
+from shops.models import Shops
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework_simplejwt.tokens import AccessToken
 import json
 import re
 import networkx as nx
@@ -16,7 +16,7 @@ def create(request):
         name = json.loads(request.body.decode('utf-8'))['name']
         occupacy = float(re.sub(r'%','',json.loads(request.body.decode('utf-8'))['occupacy']))/100
         is_paid = json.loads(request.body.decode('utf-8'))['isPaid']
-        print(name, levels, occupacy, is_paid)
+        # print(name, levels, occupacy, is_paid)
 
         #stałe
         zones = ['A', 'B', 'C', 'D']
@@ -24,11 +24,11 @@ def create(request):
         number_of_spots_in_zone = 14
 
         distance = dijkstra(zones, levels)
-        print(distance)
+        # print(distance)
         try:
             parking = Parking.objects.create(name=name, is_paid=is_paid)
         except:
-            return JsonResponse({"err": "Parking with this name alerady exists"})
+            return JsonResponse({"err": "Parking with this name alerady exists"}, status=400)
         for l in levels:
             level = Level.objects.create(level_number=l, parking=parking)
             for z in zones:
@@ -36,7 +36,7 @@ def create(request):
                 
                 spots = [{'spot_number' : spot + 1 , 'user_id': None, 'is_taken' : True if random.random() <= occupacy else False } for spot in range(number_of_spots_in_zone)]
                 for s in spots:
-                    print(f'{l}{z}{s["spot_number"]}')
+                    # print(f'{l}{z}{s["spot_number"]}')
                     dist = distance[f'{l}{z}{s["spot_number"]}']
                     spot = Spot.objects.create(spot_number=s['spot_number'], user_id=s['user_id'], is_taken=s['is_taken'], distance=dist, zone=zone)
         
@@ -56,8 +56,8 @@ def get_names(request):
 def get_parking(request):
     # geting parking from database
     if request.method == 'POST':
-        token = request.headers['Authorization']
-        print(token)
+        # token = request.headers['Authorization']
+        # print(token)
         # token = jwt.decode(request.headers['Authorization'].split(" ")[1], base64.b64decode(SECRET_KEY), ["HS256"])
         # print(token)
 
@@ -163,7 +163,7 @@ def find_spot(request):
                     print(spot.spot_number, zone.name, level)
             return JsonResponse({'spot': spot.id})
         except:
-            return JsonResponse({'err': "No free spots in desired zone"})
+            return JsonResponse({'err': "No free spots in desired zone"}, status=400)
 
 def set_spot(spot, user_id):
     old_spot = Spot.objects.filter(user_id=user_id)
@@ -207,14 +207,6 @@ def find_spot_with_level(parking, level):
     return spot, zone, level
 
 @csrf_exempt
-def crete_shops(request):
-    if request.method == "POST":
-        shops = json.loads(request.body.decode('utf-8'))['shops']
-        for shop in shops:
-            Shops.objects.create(name = shop['name'], zone = shop['zone'])
-        return HttpResponse()
-
-@csrf_exempt
 def get_parking_options(request):
     if request.method == "POST":
         shops = Shops.objects.all()
@@ -241,7 +233,9 @@ def delete_spot(request):
             old_spot.user_id = None
             old_spot.is_taken = False     
             old_spot.save()
-        return JsonResponse({})
+            return JsonResponse({})
+        else:
+            return JsonResponse({'err': 'user had no spot assigned'}, status=400)
 
 def dijkstra(zones, levels):
 
@@ -416,13 +410,8 @@ def dijkstra(zones, levels):
             dist = distance(G, f'Entr{level+1}', f'Lvl{level}')
             G.add_edge(f'Entr{level+1}', f'Lvl{level}', weight=dist)
 
-
-    # nx.draw(G, nx.get_node_attributes(G, 'pos'), with_labels=True, node_size=50)
-    # pos=nx.get_node_attributes(G,'pos')
-    # labels = nx.get_edge_attributes(G,'weight')
-    # nx.draw_networkx_edge_labels(G,pos,edge_labels=labels)
     distances = nx.dijkstra_predecessor_and_distance(G, f'Entr1')[1]
-    # plt.show()
+
     return distances
 
 def distance(G, first_node, second_node):
