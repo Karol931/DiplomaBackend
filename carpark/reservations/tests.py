@@ -21,25 +21,18 @@ class TestReservations(TestCase):
 
         response = self.client.post(reverse('reservation_create'), data, content_type=self.content_type)
         end_date = (datetime.now() + timedelta(hours=1, minutes=1)).strftime('%Y-%m-%dT%H:%M:%S.%f')
-        # print(response.json(), end_date)
         
-        # check creation response code
+        # sprawdzanie poprawności tworzenia rezerwacji
         self.assertEqual(response.status_code, 200)
-        
-        # check creation end_date to nearest second
         self.assertEqual(re.sub(r'\..*', '', response.json()['end_date']), re.sub(r'\..*', '', end_date))
 
-        #get created reservation
         reservation = Reservations.objects.get(parking_id=self.parking.id, user_id=self.user.id)
 
+        # sprawdzanie poprawności przedłużenia rezerwacji
         response = self.client.post(reverse('reservation_create'), data, content_type=self.content_type)
-
         end_date = (reservation.end_date + timedelta(hours=1, minutes=1)).strftime('%Y-%m-%dT%H:%M:%S.%f')
 
-        # check prelonging response code
         self.assertEqual(response.status_code, 200)
-        
-        # check prelonging end_date to nearest second
         self.assertEqual(re.sub(r'\..*', '', response.json()['end_date']), re.sub(r'\..*', '', end_date))
 
     def test_cancel_reservation(self):
@@ -56,22 +49,21 @@ class TestReservations(TestCase):
     def test_get_reservation(self):
         data = json.dumps({"parkingName": self.parking.name, "userId": self.user.id})
 
-        # without reservation
+        # test bez rezerwacji
         response = self.client.post(reverse('reservation_get'), data, content_type=self.content_type)
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()['end_date'], "doesn\'t exist")
 
-        # with reservation
         start_date = datetime.now()
         end_date = start_date + timedelta(hours=1)
         reservation = Reservations.objects.create(user=self.user, parking=self.parking, end_date=end_date, start_date=start_date)
-
+        
+        # test posiadanej rezerwacji
         end_date = reservation.end_date.strftime('%Y-%m-%dT%H:%M:%S.%f')
         response = self.client.post(reverse('reservation_get'), data, content_type=self.content_type)
 
         self.assertEqual(response.status_code, 200)
-        # to the nearest second
         self.assertEqual(re.sub(r'\..*', '', response.json()['end_date']), re.sub(r'\..*', '', end_date))
 
 

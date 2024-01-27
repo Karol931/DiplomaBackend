@@ -9,13 +9,16 @@ from django.http import JsonResponse
 @csrf_exempt
 def create(request):
     if request.method == "POST":
+        flag = False
         shops = json.loads(request.body.decode('utf-8'))['shops']
         for shop in shops:
             shop_exists = Shops.objects.filter(name=shop['name'])
-            if not shop_exists.exists():
+            if not shop_exists:
                 Shops.objects.create(name = shop['name'], zone = shop['zone'])
+            else:
+                flag = True
         
-        if not shop_exists.exists():
-            return JsonResponse()
+        if not flag:
+            return JsonResponse({})
         else:
-            return JsonResponse({"err": "one or more shops already exist"})
+            return JsonResponse({"err": "one or more shops already exist"}, status = 400)

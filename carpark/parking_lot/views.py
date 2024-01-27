@@ -24,7 +24,7 @@ def create(request):
         number_of_spots_in_zone = 14
 
         distance = dijkstra(zones, levels)
-        # print(distance)
+
         try:
             parking = Parking.objects.create(name=name, is_paid=is_paid)
         except:
@@ -33,10 +33,8 @@ def create(request):
             level = Level.objects.create(level_number=l, parking=parking)
             for z in zones:
                 zone = Zone.objects.create(name=z, level=level)
-                
                 spots = [{'spot_number' : spot + 1 , 'user_id': None, 'is_taken' : True if random.random() <= occupacy else False } for spot in range(number_of_spots_in_zone)]
                 for s in spots:
-                    # print(f'{l}{z}{s["spot_number"]}')
                     dist = distance[f'{l}{z}{s["spot_number"]}']
                     spot = Spot.objects.create(spot_number=s['spot_number'], user_id=s['user_id'], is_taken=s['is_taken'], distance=dist, zone=zone)
         
@@ -240,11 +238,12 @@ def delete_spot(request):
 def dijkstra(zones, levels):
 
     G = nx.Graph()
-    # szerokosc 5, dlugosc 10
+
     pos_adj_per_level = 0
     for level in levels:
         G.add_node(f'Entr{level}', pos = (5 + pos_adj_per_level, 22.5))
         G.add_node(f'Lvl{level}', pos=(25 + pos_adj_per_level, 22.5))
+        
         if level % 2 != 0:
             #D
             G.add_node(f'{level}D1', pos=(5 + pos_adj_per_level, 26.25))
@@ -422,6 +421,6 @@ def distance(G, first_node, second_node):
 
 
 def delete_all_parkings(request):
-    # Parking.objects.all().delete()
+    Parking.objects.filter(name='michal').delete()
 
     return HttpResponse()

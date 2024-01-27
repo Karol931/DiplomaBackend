@@ -26,7 +26,6 @@ def create(request):
 
         reservation = Reservations.objects.filter(user_id=user.id, parking_id=parking.id)
         if reservation.exists():
-            # print(reservation.first())
             reservation = reservation.first()
             reservation.end_date += timedelta(hours=hours, minutes=minutes)
             reservation.save()
@@ -45,7 +44,7 @@ def cancel_reservation(request):
         parking_id = Parking.objects.get(name=parking_name).id
         
         reservation = Reservations.objects.filter(parking_id=parking_id, user_id=user_id)
-        if(reservation.exists()):
+        if reservation.exists():
             reservation.delete()
         return JsonResponse({})
 
@@ -62,7 +61,7 @@ def get_reservation(request):
             reservation = reservation.first()
             return JsonResponse({'end_date': reservation.end_date})
         else:
-            return JsonResponse({'end_date': "doesn\'t exist"})
+            return JsonResponse({'end_date': "doesn\'t exist"}, status=400)
 
 def delete_all(request):
     # Reservations.objects.all().delete()

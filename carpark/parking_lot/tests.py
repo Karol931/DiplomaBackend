@@ -2,7 +2,6 @@ from django.test import TestCase
 from django.urls import reverse
 import json
 from usersAPI.models import User
-from shops.models import Shops
 # Create your tests here.
 
 class TestUsers(TestCase):
@@ -14,10 +13,11 @@ class TestUsers(TestCase):
     def test_create(self):
         data = json.dumps({"levels": 3, "name": "create_test", "occupacy": "25%", "isPaid": True})
 
+        # test poprawnej nazwy parkingu
         response = self.client.post(reverse('parking_create'), data, content_type=self.content_type)
-
         self.assertEqual(response.status_code, 200)
 
+        # test zajętej nazwy prakingu
         response = self.client.post(reverse('parking_create'), data, content_type=self.content_type)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()['err'], "Parking with this name alerady exists")
@@ -25,6 +25,7 @@ class TestUsers(TestCase):
     def test_get_parking(self):
         data = json.dumps({"name": "test"})
         
+        # sprawdzenie poprawności wartości lub kluczy całego parkingu
         response = self.client.post(reverse('get_parking'), data, content_type=self.content_type)
 
         self.assertEqual(response.status_code, 200)
@@ -45,8 +46,11 @@ class TestUsers(TestCase):
     def test_get_names(self):
         data2 = json.dumps({"levels": 2, "name": "test2", "occupacy": "75%", "isPaid": False})
         data3 = json.dumps({"levels": 5, "name": "test3", "occupacy": "50%", "isPaid": True})
+
         self.client.post(reverse('parking_create'), data2, content_type=self.content_type)
         self.client.post(reverse('parking_create'), data3, content_type=self.content_type)
+
+        # sprawdzenie poprawności nazw parkingów
         response = self.client.get(reverse('parking_get_names'))
 
         self.assertEqual(response.status_code, 200)
@@ -57,24 +61,28 @@ class TestUsers(TestCase):
         self.client.post(reverse('parking_create'), data, content_type=self.content_type)
         user = User.objects.create(username="test@test.com", password="test")
 
+        # sprawdzenie poprawności klucza znalezionego miejsca
         data = json.dumps({'userId': user.id, 'parkingName': 'test', 'level':'','zone':''})
         response = self.client.post(reverse('parking_find_spot'), data, content_type=self.content_type)
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue('spot' in response.json())
 
+        # sprawdzenie poprawności klucza znalezionego miejsca
         data = json.dumps({'userId': user.id, 'parkingName': 'test', 'level':'','shop':''})
         response = self.client.post(reverse('parking_find_spot'), data, content_type=self.content_type)
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue('spot' in response.json())
 
+        # sprawdzenie poprawności błędu przy nieznalezieniu miejsca
         data = json.dumps({'userId': user.id, 'parkingName': 'full_test', 'level':'', 'zone':''})
         response = self.client.post(reverse('parking_find_spot'), data, content_type=self.content_type)
       
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()['err'], "No free spots in desired zone")
 
+        # sprawdzenie poprawności błędu przy nieznalezieniu miejsca
         data = json.dumps({'userId': user.id, 'parkingName': 'full_test', 'level':'', 'shop':''})
         response = self.client.post(reverse('parking_find_spot'), data, content_type=self.content_type)
       
@@ -86,6 +94,7 @@ class TestUsers(TestCase):
         user = User.objects.create(username="test@test.com", password="test")
         data = json.dumps({'id': user.id})
         
+        # sprawdzenie przy braku miejsca użytkownika
         response = self.client.post(reverse('parking_delete_spot'), data, content_type=self.content_type)
 
         self.assertTrue(response.status_code, 400)
@@ -94,6 +103,7 @@ class TestUsers(TestCase):
         data = json.dumps({'userId': user.id, 'parkingName': 'test', 'level':''})
         self.client.post(reverse('parking_find_spot'), data, content_type=self.content_type)
         
+        # sprawdzenie przy posiadanym miejscu użytkownika
         data = json.dumps({'id': user.id})
         response = self.client.post(reverse('parking_delete_spot'), data, content_type=self.content_type)
 

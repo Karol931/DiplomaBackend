@@ -15,17 +15,18 @@ class TestUsers(TestCase):
     def test_register(self):
         data = json.dumps({"username": "test@test.com", "password": "test_password"})
         
-        # test for registering
+        # test rejestracji
         response = self.client.post(reverse('user_register'), data, content_type=self.content_type)
         self.assertEqual(response.status_code, 200)
 
-        # test for registering already existing user
+        # test ponownej rejestracji
         response = self.client.post(reverse('user_register'), data, content_type=self.content_type)
         self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['username'], 'user with this username already exists.')
 
     def test_login(self):
 
-        # wrong username test
+        # test logowania ze złymi danymi
         wrong_data = json.dumps({"username": "wrong@test.com", "password": "test"})
 
         response = self.client.post(reverse('token_obtain_pair'), wrong_data, content_type=self.content_type)
@@ -33,7 +34,7 @@ class TestUsers(TestCase):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json()['detail'], 'No active account found with the given credentials')
 
-        # right credentials test
+        # test poprawnego logowania
         response = self.client.post(reverse('token_obtain_pair'), self.data, content_type=self.content_type)
     
         self.assertTrue('access' in response.json())
